@@ -1,7 +1,7 @@
 ufoNormalize ?= $(UFONORMALIZER) $(UFONORMALIZERFLAGS) "$1" -o "$2"
 expandUFOParts = $(shell find "$1" -type f 2> /dev/null)
 ufoParts = $(call expandUFOParts,$(patsubst %-normalized.ufo,%.ufo,$(patsubst $(BUILDDIR)/%,$(SOURCEDIR)/%,$@)))
-styleToDS = $(_DSF_$(subst -,,$*))
+instanceToDS = $(_DSF_$(subst -,,$*))
 
 define makeVars =
 from fontTools.designspaceLib import DesignSpaceDocument
@@ -11,7 +11,7 @@ for instance in designspace.instances: print("_DSI_{1}{0} = {1} {2}\n_DSF_{1}{0}
 endef
 
 ifneq ($(SOURCES_DESIGNSPACE),)
-_TMP = $(shell local tmp=$$(mktemp vars-XXXXXX.mk); echo $${tmp}; {$(foreach SOURCE,$(SOURCES_DESIGNSPACE),$(PYTHON) -c '$(makeVars)';)} >> $${tmp})
+_TMP := $(shell local tmp=$$(mktemp vars-XXXXXX.mk); echo $${tmp}; {$(foreach SOURCE,$(SOURCES_DESIGNSPACE),$(PYTHON) -c '$(makeVars)';)} >> $${tmp})
 $(eval $(file < $(_TMP)))
 $(shell rm -f $(_TMP))
 endif
@@ -55,7 +55,7 @@ $(BUILDDIR)/%-normalized.ufo: $(SOURCEDIR)/%.ufo $$(ufoParts) | $(BUILDDIR)
 # $(BUILDDIR)/%-normalized.ufo: FONTMAKEFLAGS += --instance-dir '{tmp}'
 # $(BUILDDIR)/%-normalized.ufo: FONTMAKEFLAGS += --output-dir '$(BUILDDIR)' --output-path $@
 # --output-path $@
-$(BUILDDIR)/%-normalized.ufo: $$(styleToDS) | $(BUILDDIR)
+$(BUILDDIR)/%-normalized.ufo: $$(instanceToDS) | $(BUILDDIR)
 	$(FONTMAKE) $(FONTMAKEFLAGS) -m "$<" -i "$(_DSI_$(subst -,,$*))" -o ufo
 	$(call ufoNormalize,$(SOURCEDIR)/instance_ufos/$*.ufo,$@)
 
